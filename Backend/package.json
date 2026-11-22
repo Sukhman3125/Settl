@@ -1,0 +1,14 @@
+{
+  "name": "settl_backend",
+  "version": "1.0.0",
+  "description": "backend for settl",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js"
+  },
+  "author": "sukhman",
+  "license": "ISC",
+  "dependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
