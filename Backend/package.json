@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build:native": "crossbind build -p host -e node",
-    "dev": "nodemon index.js"
+    "dev": "nodemon src/index.js"
   },
   "author": "sukhman",
   "license": "ISC",

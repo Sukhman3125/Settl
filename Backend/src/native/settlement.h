@@ -1,5 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
+using namespace std;
 
-std::string helloFromCpp();
+vector<string> helloFromCpp(vector<string> x, vector<double> y, vector<int> z);
