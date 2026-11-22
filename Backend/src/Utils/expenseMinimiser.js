@@ -49,13 +49,13 @@ function calculateDebts(transactions) {
     let lenders = [], borrowers = [];
     Object.entries(netBalance).forEach(([key, value]) => {
         if (value > 0) {
-            lenders.push([key, value]);
+            lenders.push({name: key, amount: value});
         } else if (value < 0) {
-            borrowers.push([key, -value]);
+            borrowers.push({name: key, amount: -value});
         }
     });
-    lenders.sort((a, b) => b[1] - a[1]);
-    borrowers.sort((a, b) => b[1] - a[1]);
+    lenders.sort((a, b) => b.amount - a.amount);
+    borrowers.sort((a, b) => b.amount - a.amount);
 
     return { lenders, borrowers };
 }

@@ -3,12 +3,18 @@
   "version": "1.0.0",
   "description": "backend for settl",
   "main": "index.js",
+  "type": "module",
   "scripts": {
+    "build:native": "crossbind build -p host -e node",
     "dev": "nodemon index.js"
   },
   "author": "sukhman",
   "license": "ISC",
   "dependencies": {
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.11"
+  },
+  "devDependencies": {
+    "@crossbind/core-embind-napi": "^2.0.0-beta.79",
+    "crossbind": "^2.0.0-beta.81"
   }
 }
