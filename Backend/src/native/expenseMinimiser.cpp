@@ -11,7 +11,7 @@
 using namespace std;
 
 using t = tuple<string, string, double>;
-double E = 1e-4;
+double E = 1e-3;
 
 #pragma region declarations
 
@@ -133,83 +133,140 @@ vector<t> backtrackSettleDebts(
     vector<pair<string, double>> &creditors,
     vector<pair<string, double>> &debtors)
 {
-    vector<pair<string, long long>> people; // cents; +ve = is owed, -ve = owes
+    vector<pair<string, double>> people; // +ve = is owed, -ve = owes
 
     for (auto &it : creditors)
-    {
-        long long c = llround(it.second * 100);
-        if (c != 0)
-            people.push_back({it.first, c});
-    }
+        if (fabs(it.second) > E)
+            people.push_back({it.first, it.second});
     for (auto &it : debtors)
+        if (fabs(it.second) > E)
+            people.push_back({it.first, -it.second});
+
+    vector<t> result;
+    int n = (int)people.size();
+
+    // Step 1: cancel exact opposite pairs (always optimal)
+    vector<bool> used(n, false);
+    for (int i = 0; i < n; i++)
     {
-        long long c = llround(it.second * 100);
-        if (c != 0)
-            people.push_back({it.first, -c});
+        if (used[i])
+            continue;
+        for (int j = i + 1; j < n; j++)
+        {
+            if (used[j])
+                continue;
+            if (fabs(people[i].second + people[j].second) < E)
+            {
+                double amt = fabs(people[i].second);
+                if (people[i].second < 0)
+                    result.push_back({people[i].first, people[j].first, amt});
+                else
+                    result.push_back({people[j].first, people[i].first, amt});
+                used[i] = used[j] = true;
+                break;
+            }
+        }
     }
 
-    long long total = 0;
-    for (auto &p : people)
-        total += p.second;
-    if (total != 0)
-        return {}; // inconsistent input
+    vector<pair<string, double>> rem;
+    for (int i = 0; i < n; i++)
+        if (!used[i])
+            rem.push_back(people[i]);
 
-    vector<t> current, best;
-    size_t bestCount = SIZE_MAX;
+    int m = (int)rem.size();
+    if (m == 0)
+        return result;
 
-    function<void(int)> dfs = [&](int start)
+    // Step 2: split into the maximum number of zero-sum groups (exact DP)
+    unsigned full = (1u << m) - 1;
+    vector<double> sum(full + 1, 0.0);
+    vector<uint8_t> dp(full + 1, 0);
+
+    auto isZero = [&](unsigned mask)
     {
-        while (start < (int)people.size() && people[start].second == 0)
-            start++;
-
-        if (start == (int)people.size())
-        {
-            if (current.size() < bestCount)
-            {
-                bestCount = current.size();
-                best = current;
-            }
-            return;
-        }
-
-        if (current.size() + 1 >= bestCount)
-            return; // need at least 1 more
-
-        set<long long> tried;
-
-        for (int i = start + 1; i < (int)people.size(); i++)
-        {
-            long long a = people[start].second;
-            long long b = people[i].second;
-
-            if ((a > 0) == (b > 0) || b == 0)
-                continue; // need opposite signs
-            if (!tried.insert(b).second)
-                continue;
-
-            long long absA = a < 0 ? -a : a;
-            long long absB = b < 0 ? -b : b;
-            long long amount = min(absA, absB);
-
-            people[start].second += (a < 0 ? amount : -amount);
-            people[i].second += (b < 0 ? amount : -amount);
-
-            if (a < 0)
-                current.push_back({people[start].first, people[i].first, amount / 100.0});
-            else
-                current.push_back({people[i].first, people[start].first, amount / 100.0});
-
-            dfs(start); // FIX: stay on start, it may have a remainder
-
-            current.pop_back();
-            people[start].second = a;
-            people[i].second = b;
-
-            if (a + b == 0)
-                break; // perfect cancel: no better option
-        }
+        return fabs(sum[mask]) < E * __builtin_popcount(mask);
     };
 
-    dfs(0);
-    return best;
+    for (unsigned mask = 1; mask <= full; mask++)
+    {
+        int low = __builtin_ctz(mask);
+        sum[mask] = sum[mask & (mask - 1)] + rem[low].second;
+
+        uint8_t best = 0;
+        unsigned mm = mask;
+        while (mm)
+        {
+            unsigned b = mm & (~mm + 1);
+            uint8_t v = dp[mask ^ b];
+            if (v > best)
+                best = v;
+            mm ^= b;
+        }
+        dp[mask] = best + (isZero(mask) ? 1 : 0);
+    }
+
+    // Reconstruct an ordering that achieves dp[full]
+    vector<int> order;
+    unsigned mask = full;
+    while (mask)
+    {
+        int target = dp[mask] - (isZero(mask) ? 1 : 0);
+        unsigned mm = mask;
+        while (mm)
+        {
+            unsigned b = mm & (~mm + 1);
+            if (dp[mask ^ b] == target)
+            {
+                order.push_back(__builtin_ctz(b));
+                mask ^= b;
+                break;
+            }
+            mm ^= b;
+        }
+    }
+    reverse(order.begin(), order.end());
+
+    // Cut the ordering at every zero-sum prefix (using the same mask sums as the DP)
+    vector<vector<int>> groups;
+    vector<int> cur;
+    unsigned prefixMask = 0;
+    for (int id : order)
+    {
+        cur.push_back(id);
+        prefixMask |= (1u << id);
+        if (isZero(prefixMask))
+        {
+            groups.push_back(cur);
+            cur.clear();
+        }
+    }
+    if (!cur.empty())
+        groups.push_back(cur);
+
+    // Step 3: settle each group (k people -> k-1 transactions, optimal since it can't be split)
+    for (auto &g : groups)
+    {
+        vector<pair<int, double>> cr, db; // (index, remaining amount)
+        for (int id : g)
+        {
+            if (rem[id].second > E)
+                cr.push_back({id, rem[id].second});
+            else if (rem[id].second < -E)
+                db.push_back({id, -rem[id].second});
+        }
+        size_t i = 0, j = 0;
+        while (i < cr.size() && j < db.size())
+        {
+            double amount = min(cr[i].second, db[j].second);
+            result.push_back({rem[db[j].first].first, rem[cr[i].first].first, amount});
+            cr[i].second -= amount;
+            db[j].second -= amount;
+            if (cr[i].second < E)
+                i++;
+            if (db[j].second < E)
+                j++;
+        }
+    }
+
+    return result;
 }
