@@ -1,61 +1,24 @@
-const transactions = [
-    {
-        paidBy: "mirat",
-        participants: ["abhishek", "sukhman"],
-        amount: 60
-    },
-    {
-        paidBy: "abhishek",
-        participants: ["kush"],
-        amount: 100
-    },
-    {
-        paidBy: "kush",
-        participants: ["sukhman"],
-        amount: 60
-    },
-    {
-        paidBy: "sukhman",
-        participants: ["avinash"],
-        amount: 200
-    },
-    {
-        paidBy: "avinash",
-        participants: ["mirat"],
-        amount: 167
-    },
-    {
-        paidBy: "avinash",
-        participants: ["abhishek", "sukhman", "avinash", "mirat", "kush"],
-        amount: 400
+import { native } from "../cpp.js";
+import constants from "../config/constants.js";
+
+export function minimiseExpenses(transactions) {
+    let paidBy = [], liableTo = [], amount = [];
+    for (let i = 0; i < transactions.length; i++) {
+        transactions[i].participants.forEach((participant) => {
+            if (participant !== transactions[i].paidBy) {
+                paidBy.push(transactions[i].paidBy);
+                liableTo.push(participant);
+                amount.push(transactions[i].amount / transactions[i].participants.length);
+            }
+        });
     }
-];
-minimiseExpenses(transactions);
-function minimiseExpenses(transactions) {
-    const { lenders, borrowers } = calculateDebts(transactions);
-
-    console.log("Lenders:", lenders);
-    console.log("Borrowers:", borrowers);
-}
-
-function calculateDebts(transactions) {
-    let netBalance = {};
-    transactions.forEach((obj) => {
-        netBalance[obj.paidBy] = (netBalance[obj.paidBy] || 0) + obj.amount;
-        for (let participant of obj.participants) {
-            netBalance[participant] = (netBalance[participant] || 0) - obj.amount / obj.participants.length;
+    const rawCppTransactions = native.calculateMinimisedExpenses(paidBy, liableTo, amount, constants.pivotForLargerInputs);
+    let result = new Map();
+    for(let i = 0; i < rawCppTransactions.length; i+=3) {
+        if (!result.has(rawCppTransactions[i])) {
+            result.set(rawCppTransactions[i], []);
         }
-    });
-    let lenders = [], borrowers = [];
-    Object.entries(netBalance).forEach(([key, value]) => {
-        if (value > 0) {
-            lenders.push({name: key, amount: value});
-        } else if (value < 0) {
-            borrowers.push({name: key, amount: -value});
-        }
-    });
-    lenders.sort((a, b) => b.amount - a.amount);
-    borrowers.sort((a, b) => b.amount - a.amount);
-
-    return { lenders, borrowers };
+        result.get(rawCppTransactions[i]).push([rawCppTransactions[i+1], parseFloat(rawCppTransactions[i+2])]);
+    }
+    return result;
 }

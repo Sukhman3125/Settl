@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "build:native": "crossbind build -p host -e node",
+    "build": "npx crossbind build -p host -e node -b release",
     "dev": "nodemon src/index.js"
   },
   "author": "sukhman",

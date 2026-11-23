@@ -18,39 +18,42 @@ const vectorTypes = Object.keys(mod)
   .map((k) => mod[k]);
 const isVector = (v) => v != null && vectorTypes.some((T) => v instanceof T);
 
-function vectorTypeFor(arr) {
-  if (arr.length === 0) return mod.VectorString;
-  if (arr.every((x) => typeof x === 'string')) return mod.VectorString;
-  if (arr.every((x) => typeof x === 'bigint')) return mod.VectorInt64;
-  if (arr.every((x) => typeof x === 'number')) {
-    return arr.every(Number.isInteger) ? mod.VectorInt : mod.VectorDouble;
-  }
-  throw new TypeError('Mixed-type array cannot be converted to a native vector');
-}
+const EXPECTED_VECTOR_RE = /as a (Vector\w+)\b/;
 
 function wrap(fn) {
   return (...args) => {
     const temps = [];
+    const current = args.slice();
     try {
-      const converted = args.map((a) => {
-        if (!Array.isArray(a)) return a;
-        const v = mod.toVector(vectorTypeFor(a), a);
-        temps.push(v);
-        return v;
-      });
-
-      const result = fn(...converted);
-
-      if (isVector(result)) {
+      while (true) {
         try {
-          return mod.toArray(result);
-        } finally {
-          result.delete();
+          const result = fn(...current);
+
+          if (isVector(result)) {
+            try {
+              return mod.toArray(result);
+            } finally {
+              result.delete();
+            }
+          }
+          return result;
+        } catch (rawError) {
+          const match = EXPECTED_VECTOR_RE.exec(String(rawError?.message || rawError));
+          const index = current.findIndex((a) => Array.isArray(a));
+          if (!match || index < 0 || typeof mod[match[1]] !== 'function') {
+            throw rawError;
+          }
+          const vector = mod.toVector(mod[match[1]], current[index]);
+          temps.push(vector);
+          current[index] = vector;
         }
       }
-      return result;
     } finally {
-      temps.forEach((v) => v.delete());
+      temps.forEach((v) => {
+        try {
+          v.delete();
+        } catch (e) { /* ignored */ }
+      });
     }
   };
 }
