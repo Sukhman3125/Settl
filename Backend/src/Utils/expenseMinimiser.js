@@ -13,12 +13,12 @@ export function minimiseExpenses(transactions) {
         });
     }
     const rawCppTransactions = native.calculateMinimisedExpenses(paidBy, liableTo, amount, constants.pivotForLargerInputs);
-    let result = new Map();
+    let result = {};
     for(let i = 0; i < rawCppTransactions.length; i+=3) {
-        if (!result.has(rawCppTransactions[i])) {
-            result.set(rawCppTransactions[i], []);
+        if (!result[rawCppTransactions[i]]) {
+            result[rawCppTransactions[i]] = [];
         }
-        result.get(rawCppTransactions[i]).push([rawCppTransactions[i+1], parseFloat(rawCppTransactions[i+2])]);
+        result[rawCppTransactions[i]].push([rawCppTransactions[i+1], parseFloat(rawCppTransactions[i+2])]);
     }
     return result;
 }
