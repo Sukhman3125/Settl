@@ -11,6 +11,10 @@
   "author": "sukhman",
   "license": "ISC",
   "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.10",
+    "express": "^5.3.0",
     "nodemon": "^3.1.11"
   },
   "devDependencies": {
