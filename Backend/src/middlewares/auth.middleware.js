@@ -16,7 +16,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
     try {
         const decodedToken = jwt.verify(
             token,
-            config.JWT_TOKENS.accessToken.SECRET
+            config.JWT_TOKENS.ACCESS.SECRET
         );
 
         const user = await User.findById(decodedToken._id).select(

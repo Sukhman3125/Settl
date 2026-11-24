@@ -18,7 +18,7 @@ const googleLogin = async ( idToken ) => {
 
     const ticket = await googleClient.verifyIdToken({
         idToken,
-        GOOGLE_CLIENT_ID,
+        audience: config.GOOGLE_CLIENT_ID,
     });
 
     const payload = ticket.getPayload();
@@ -247,7 +247,7 @@ const refreshAccessToken = async (incomingRefreshToken) => {
 
         const decodedToken = jwt.verify(
             incomingRefreshToken,
-            REFRESH_TOKEN_SECRET
+            config.JWT_TOKENS.REFRESH.SECRET
         );
 
         const user = await User.findById(decodedToken._id);
