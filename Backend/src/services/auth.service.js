@@ -1,12 +1,12 @@
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { OAuth2Client } from "google-auth-library";
-import { generateUniqueUsername } from "../Utils/generateUsername.js";
+import { generateUniqueUsername } from "../utils/generateUsername.js";
 import jwt from "jsonwebtoken";
 import { PendingUser } from "../models/pendingUser.model.js";
-import generateOtp from "../Factories/otp.factory.js";
+import generateOtp from "../factories/otp.factory.js";
 import sendMail from "../utils/mailer.js";
-import signUpOtpEmail from "../Factories/signUpOtpEmail.factory.js";
+import signUpOtpEmail from "../factories/signUpOtpEmail.factory.js";
 import * as config from "../config/config.js";
 
 const googleClient = new OAuth2Client(config.GOOGLE_CLIENT_ID);

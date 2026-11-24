@@ -1,6 +1,6 @@
-import { asyncHandler } from "../Utils/asyncHandler.js";
-import { minimiseExpenses } from "../Utils/expenseMinimiser.js";
-import { ApiResponse } from "../Utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { minimiseExpenses } from "../utils/expenseMinimiser.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 
 export const minimise = asyncHandler(async (req, res) => {
     const { transactions } = req.body;
