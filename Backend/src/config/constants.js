@@ -1,3 +1,2 @@
-export default{
-    pivotForLargerInputs: 20
-};
+export const PIVOT_FOR_LARGER_INPUTS = 20;
+export const DB_NAME = "Settl_Database";

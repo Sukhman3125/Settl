@@ -1,5 +1,5 @@
 import { native } from "../cpp.js";
-import constants from "../config/constants.js";
+import * as constants from "../config/constants.js";
 
 export function minimiseExpenses(transactions) {
     let paidBy = [], liableTo = [], amount = [];
@@ -12,7 +12,7 @@ export function minimiseExpenses(transactions) {
             }
         });
     }
-    const rawCppTransactions = native.calculateMinimisedExpenses(paidBy, liableTo, amount, constants.pivotForLargerInputs);
+    const rawCppTransactions = native.calculateMinimisedExpenses(paidBy, liableTo, amount, constants.PIVOT_FOR_LARGER_INPUTS);
     let result = {};
     for(let i = 0; i < rawCppTransactions.length; i+=3) {
         if (!result[rawCppTransactions[i]]) {
