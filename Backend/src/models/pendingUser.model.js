@@ -25,6 +25,11 @@ const pendingUserSchema = new Schema(
             trim: true
         },
 
+        attempts: {
+            type: Number,
+            default: 0,
+        },
+
         password: {
             type: String,
             required: true,

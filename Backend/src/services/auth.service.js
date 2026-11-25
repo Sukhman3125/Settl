@@ -8,10 +8,11 @@ import generateOtp from "../factories/otp.factory.js";
 import sendMail from "../utils/mailer.js";
 import signUpOtpEmail from "../factories/signUpOtpEmail.factory.js";
 import * as config from "../config/config.js";
+import { MAX_OTP_ATTEMPTS } from "../config/constants.js";
 
 const googleClient = new OAuth2Client(config.GOOGLE_CLIENT_ID);
 
-const googleLogin = async ( idToken ) => {
+const googleLogin = async (idToken) => {
     if (!idToken) {
         throw new ApiError(400, "Google ID token is required");
     }
@@ -100,60 +101,79 @@ const signup = async ({ username, email, password }) => {
     });
 
     if (existingUser) {
-        throw new ApiError(409, "Username/Email already exists");
+        throw new ApiError(
+            409,
+            existingUser.email === email
+                ? "Email already registered"
+                : "Username already taken"
+        );
     }
 
-    const existingPendingEmail = await PendingUser.findOne({ email });
-
-    const existingPendingUsername = await PendingUser.findOne({ username });
-
-    if (existingPendingEmail) {
-        const samePendingUser =
-            existingPendingUsername &&
-            existingPendingEmail._id.equals(existingPendingUsername._id);
-
-        if (!existingPendingUsername || samePendingUser) {
-            await PendingUser.deleteOne({ _id: existingPendingEmail._id });
-        } else {
-            throw new ApiError(409, "Username/Email already exists");
-        }
-    } else if (existingPendingUsername) {
-        throw new ApiError(409, "Username/Email already exists");
-    }
+    // Replace any existing pending registration for this email
+    // Allows multiple pending users to request the same username; first to verify claims it
+    await PendingUser.deleteOne({ email });
 
     const otp = generateOtp();
 
-    const user = await PendingUser.create({
+    const pendingUser = await PendingUser.create({
         username,
         email,
         password,
         otp,
+        attempts: 0,
         expiresAt: new Date(Date.now() + 1000 * config.AUTH_OTP_EXPIRY)
     });
 
-    if (!user) {
+    if (!pendingUser) {
         throw new ApiError(500, "Failed to sign up");
     }
 
     const { body, subject } = signUpOtpEmail(otp, username);
 
-    sendMail(email, subject, body);
+    try {
+        await sendMail(email, subject, body);
+    } catch (mailError) {
+        await PendingUser.deleteOne({ _id: pendingUser._id });
+        console.error("Failed to send signup OTP email:", mailError);
+        throw new ApiError(500, "Failed to send verification email. Please try again later.");
+    }
 
     return;
 };
 
 const verifyOtp = async ({ email, otp }) => {
-
     const pendingUser = await PendingUser.findOne({ email });
 
     if (!pendingUser) {
-        throw new ApiError(404, "Otp expired");
+        throw new ApiError(404, "OTP expired or not found. Please sign up again.");
+    }
+
+    if (pendingUser.expiresAt < new Date()) {
+        await PendingUser.deleteOne({ _id: pendingUser._id });
+        throw new ApiError(400, "OTP has expired. Please sign up again.");
+    }
+
+    if (pendingUser.attempts >= MAX_OTP_ATTEMPTS) {
+        await PendingUser.deleteOne({ _id: pendingUser._id });
+        throw new ApiError(400, "Maximum OTP attempts exceeded. Please sign up again.");
     }
 
     const isOtpCorrect = await pendingUser.isOtpCorrect(otp);
 
     if (!isOtpCorrect) {
-        throw new ApiError(400, "Entered otp was not correct.");
+        const updated = await PendingUser.findByIdAndUpdate(
+            pendingUser._id,
+            { $inc: { attempts: 1 } },
+            { new: true }
+        );
+
+        if (updated && updated.attempts >= MAX_OTP_ATTEMPTS) {
+            await PendingUser.deleteOne({ _id: pendingUser._id });
+            throw new ApiError(400, "Maximum OTP attempts exceeded. Please sign up again.");
+        }
+
+        const remaining = MAX_OTP_ATTEMPTS - (updated?.attempts ?? (pendingUser.attempts + 1));
+        throw new ApiError(400, `Incorrect OTP. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.`);
     }
 
     const existingUser = await User.findOne({
@@ -164,33 +184,44 @@ const verifyOtp = async ({ email, otp }) => {
     });
 
     if (existingUser) {
-        throw new ApiError(409, "Username/Email already exists");
+        await PendingUser.deleteOne({ _id: pendingUser._id });
+        throw new ApiError(
+            409,
+            existingUser.email === pendingUser.email
+                ? "Email already registered"
+                : "Username already taken by another user"
+        );
     }
 
-    const user = await User.create({
+    const user = new User({
         username: pendingUser.username,
         email: pendingUser.email,
         password: pendingUser.password,
     });
 
-    if (!user) {
-        throw new ApiError(500, "Failed to sign up");
-    }
+    const accessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
+    user.refreshToken = refreshToken;
 
-    const { accessToken, refreshToken } =
-        await generateAccessAndRefreshTokens(user);
+    await user.save();
 
-    const createdUser = await User.findById(user._id)
-        .select("-password -refreshToken");
+    await PendingUser.deleteMany({
+        $or: [
+            { _id: pendingUser._id },
+            { username: pendingUser.username }
+        ]
+    });
 
-    await PendingUser.deleteOne({ _id: pendingUser._id });
+    const createdUser = user.toObject();
+    delete createdUser.password;
+    delete createdUser.refreshToken;
 
     return {
         user: createdUser,
         accessToken,
         refreshToken,
     };
-}
+};
 
 const login = async ({ emailOrUsername, password }) => {
     const user = await User.findOne({
