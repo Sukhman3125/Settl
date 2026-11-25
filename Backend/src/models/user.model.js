@@ -43,16 +43,10 @@ const userSchema = new Schema(
         refreshToken: {
             type: String,
             default: null,
-        },
-        friends: [
-            {
-                type: Schema.Types.ObjectId,
-                ref: "User"
-            }
-        ]
+        }
     },
     {
-        timestamps: true,
+        timestamps: true
     }
 );
 
