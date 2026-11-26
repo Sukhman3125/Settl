@@ -19,8 +19,8 @@ const create = asyncHandler(async (req, res) => {
 
 const leave = asyncHandler(async (req, res) => {
     const user_id = req.user._id;
-    const { notebook_id } = req.body;
-    await notebookService.leave(user_id, notebook_id);
+    const notebook = req.notebook;
+    await notebookService.leave(user_id, notebook);
     return res
         .status(200)
         .json(

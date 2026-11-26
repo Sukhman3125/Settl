@@ -5,6 +5,7 @@ import * as rates from "../../config/rates.js";
 import { validate } from "../../middlewares/validate.middleware.js";
 import { verifyJWT } from "../auth/auth.middleware.js";
 import * as validators from "./notebook.validator.js";
+import { verifyParticipation } from "./notebook.middleware.js";
 
 const router = Router();
 
@@ -23,6 +24,7 @@ router.post(
     verifyJWT,
     validators.leave,
     validate,
+    verifyParticipation,
     notebookController.leave
 )
 

@@ -18,25 +18,14 @@ const create = async (user_id, notebookName) => {
     return notebook;
 };
 
-const leave = async (user_id, notebook_id) => {
-    const notebook = await Notebook.findById(notebook_id)
-        .select("participants");
-    if (!notebook)
-        throw new ApiError(404, "Notebook not found");
-
-    const isParticipant = notebook.participants.some(
-        participant => participant.equals(user_id)
-    );
-    if (!isParticipant)
-        throw new ApiError(403, "You don't have access to this notebook");
-
+const leave = async (user_id, notebook) => {
     if (notebook.participants.length === 1) {
-        await Notebook.findByIdAndDelete(notebook_id);
+        await Notebook.findByIdAndDelete(notebook._id);
         return;
     }
 
     await Notebook.findByIdAndUpdate(
-        notebook_id,
+        notebook._id,
         {
             $pull: {
                 participants: user_id
