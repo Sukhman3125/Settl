@@ -37,4 +37,14 @@ router.get(
     notebookController.my_notebooks
 );
 
+router.post(
+    "/add-transaction",
+    rateLimiter(rates.LENIENT_RATE),
+    verifyJWT,
+    validators.add_transaction,
+    validate,
+    verifyParticipation("_id participants transactions"),
+    notebookController.add_transaction
+);
+
 export default router;

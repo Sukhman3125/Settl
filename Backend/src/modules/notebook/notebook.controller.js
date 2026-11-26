@@ -47,8 +47,28 @@ const my_notebooks = asyncHandler(async (req, res) => {
         );
 });
 
+const add_transaction = asyncHandler(async (req, res) => {
+    const notebook = req.notebook;
+    const { paidBy, participants, amount } = req.body;
+
+    const settlements = await notebookService.add_transaction(
+        { notebook, paidBy, participants, amount }
+    );
+
+    return res
+        .status(201)
+        .json(
+            new ApiResponse(
+                201,
+                settlements,
+                "Successfully added the transaction"
+            )
+        );
+});
+
 export {
     create,
     leave,
-    my_notebooks
+    my_notebooks,
+    add_transaction
 }
