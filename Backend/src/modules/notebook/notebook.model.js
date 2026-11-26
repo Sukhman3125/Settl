@@ -27,7 +27,7 @@ const transactionSchema = new Schema(
 
 const settlementSchema = new Schema(
     {
-        user: {
+        to: {
             type: Schema.Types.ObjectId,
             ref: "User",
             required: true
