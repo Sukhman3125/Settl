@@ -23,7 +23,7 @@ export function minimiseExpenses(transactions) {
         constants.PIVOT_FOR_LARGER_INPUTS
     );
 
-    const result = Object.create(null);
+    const result = {};
 
     for (let i = 0; i < rawCppTransactions.length; i += 3) {
         const debtor = rawCppTransactions[i];
