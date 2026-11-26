@@ -1,10 +1,10 @@
 import { Router } from "express";
-import * as authController from "../controllers/auth.controller.js";
-import { validate } from "../middlewares/validate.middleware.js";
-import * as validators from "../validators/auth.validator.js";
-import { verifyJWT } from "../middlewares/auth.middleware.js";
-import rateLimiter from "../middlewares/rateLimiter.middleware.js";
-import * as rates from "../config/rates.js";
+import * as authController from "./auth.controller.js";
+import { validate } from "../../middlewares/validate.middleware.js";
+import * as validators from "./auth.validator.js";
+import { verifyJWT } from "./auth.middleware.js";
+import rateLimiter from "../../middlewares/rateLimiter.middleware.js";
+import * as rates from "../../config/rates.js";
 
 const router = Router();
 

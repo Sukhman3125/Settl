@@ -1,10 +1,10 @@
-import * as authService from "../services/auth.service.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
+import * as authService from "./auth.service.js";
+import { asyncHandler } from "../../utils/asyncHandler.js";
+import { ApiResponse } from "../../utils/ApiResponse.js";
 import {
     accessTokenOptions,
     refreshTokenOptions,
-} from "../utils/cookieOptions.js";
+} from "../../utils/cookieOptions.js";
 
 const signup = asyncHandler(async (req, res) => {
     const { username, email, password } = req.body;

@@ -1,6 +1,6 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
-import * as notebookService from "../services/notebook.service.js";
+import { asyncHandler } from "../../utils/asyncHandler.js";
+import { ApiResponse } from "../../utils/ApiResponse.js";
+import * as notebookService from "./notebook.service.js";
 
 const createNotebook = asyncHandler(async (req, res) => {
     const user_id = req.user._id;

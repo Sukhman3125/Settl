@@ -1,5 +1,5 @@
-import { ApiError } from "../utils/ApiError.js";
-import { Notebook } from "../models/notebook.model.js";
+import { ApiError } from "../../utils/ApiError.js";
+import { Notebook } from "./notebook.model.js";
 
 const createNotebook = async (user_id, notebookName) => {
     const notebook = await Notebook.create({

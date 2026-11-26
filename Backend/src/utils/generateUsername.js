@@ -1,4 +1,4 @@
-import { User } from "../models/user.model.js";
+import { User } from "../modules/user/user.model.js";
 
 export const generateUniqueUsername = async (name, email) => {
     let baseUsername = (
