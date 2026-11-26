@@ -24,7 +24,7 @@ router.post(
     verifyJWT,
     validators.leave,
     validate,
-    verifyParticipation,
+    verifyParticipation("_id participants"),
     notebookController.leave
 )
 

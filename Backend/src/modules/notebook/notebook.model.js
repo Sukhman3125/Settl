@@ -18,12 +18,28 @@ const transactionSchema = new Schema(
             type: Number,
             required: true,
             min: 0.01,
-        },
+        }
     },
     {
         timestamps: true,
     }
 );
+
+const settlementSchema = new Schema(
+    {
+        user: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            required: true
+        },
+        amount: {
+            type: Number,
+            required: true
+        }
+    },
+    { _id: false }
+);
+
 
 const notebookSchema = new Schema(
     {
@@ -42,7 +58,12 @@ const notebookSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: "User"
         }],
-        transactions: [transactionSchema]
+        transactions: [transactionSchema],
+        settlements: {
+            type: Map,
+            of: [settlementSchema],
+            default: () => new Map()
+        }
     },
     {
         timestamps: true
