@@ -95,6 +95,37 @@ const add_transaction = async ({ addedBy, notebook, paidBy, participants, amount
         description: description ?? "",
     });
 
+    return await updateSettlements(notebook);
+};
+
+const remove_transaction = async ({ notebook, user_id, transaction_id }) => {
+    const transaction = notebook.transactions.find(
+        transaction => transaction._id.equals(transaction_id)
+    );
+
+    if (!transaction) {
+        throw new ApiError(404, "Transaction not found");
+    }
+
+    const addedBy = transaction.addedBy;
+
+    const isOwnerStillParticipant = notebook.participants.some(
+        participant => participant.equals(addedBy)
+    );
+
+    if (isOwnerStillParticipant && !addedBy.equals(user_id)) {
+        throw new ApiError(
+            403,
+            "You are not authorized to remove this transaction"
+        );
+    }
+    
+    notebook.transactions.pull({ _id: transaction_id });
+
+    return await updateSettlements(notebook);
+};
+
+const updateSettlements = async (notebook) => {
     notebook.settlements = minimiseExpenses(notebook.transactions);
 
     await notebook.save();
@@ -121,11 +152,12 @@ const add_transaction = async ({ addedBy, notebook, paidBy, participants, amount
     );
 
     return settlements;
-};
+}
 
 export {
     create,
     leave,
     my_notebooks,
-    add_transaction
+    add_transaction,
+    remove_transaction
 };

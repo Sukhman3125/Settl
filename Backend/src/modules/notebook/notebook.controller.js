@@ -1,6 +1,7 @@
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import * as notebookService from "./notebook.service.js";
+import { json } from "express";
 
 const create = asyncHandler(async (req, res) => {
     const user_id = req.user._id;
@@ -67,9 +68,28 @@ const add_transaction = asyncHandler(async (req, res) => {
         );
 });
 
+const remove_transaction = asyncHandler(async (req, res) => {
+    const notebook = req.notebook;
+    const user_id = req.user._id;
+    const { transaction_id } = req.body;
+
+    const settlements = await notebookService.remove_transaction({notebook, user_id, transaction_id});
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                settlements,
+                "Successfully deleted the transaction"
+            )
+        );
+});
+
 export {
     create,
     leave,
     my_notebooks,
-    add_transaction
+    add_transaction,
+    remove_transaction
 }

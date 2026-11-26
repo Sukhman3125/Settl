@@ -1,9 +1,9 @@
 import { body } from "express-validator";
 import * as constants from "../../config/constants.js"
 
-const notebook_id = () => body("notebook_id")
+const mongo_id = (prop_name) => body(prop_name)
     .isMongoId()
-    .withMessage("Invalid notebook id");
+    .withMessage(`Invalid ${prop_name}`);
 
 const user = (prop_name) =>
     body(prop_name)
@@ -24,7 +24,7 @@ export const create = [
 ];
 
 export const leave = [
-    notebook_id()
+    mongo_id("notebook_id")
 ];
 
 export const my_notebooks = [
@@ -35,7 +35,7 @@ export const my_notebooks = [
 ];
 
 export const add_transaction = [
-    notebook_id(),
+    mongo_id("notebook_id"),
     user("paidBy"),
 
     body("participants")
@@ -70,4 +70,9 @@ export const add_transaction = [
         .trim()
         .isLength({ max: constants.DESC_MAX_LEN })
         .withMessage(`Description cannot exceed ${constants.DESC_MAX_LEN} characters`)
+];
+
+export const remove_transaction = [
+    mongo_id("notebook_id"),
+    mongo_id("transaction_id")
 ];

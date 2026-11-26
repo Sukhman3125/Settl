@@ -47,4 +47,14 @@ router.post(
     notebookController.add_transaction
 );
 
+router.post(
+    "/remove-transaction",
+    rateLimiter(rates.LENIENT_RATE),
+    verifyJWT,
+    validators.remove_transaction,
+    validate,
+    verifyParticipation("_id participants transactions"),
+    notebookController.remove_transaction
+);
+
 export default router;
