@@ -51,7 +51,7 @@ const my_notebooks = async (user_id, page) => {
     return notebooks;
 };
 
-const add_transaction = async ({ notebook, paidBy, participants, amount, description }) => {
+const add_transaction = async ({ addedBy, notebook, paidBy, participants, amount, description }) => {
     const usernames = [...new Set([paidBy, ...participants])];
 
     const users = await User.find({
@@ -88,10 +88,11 @@ const add_transaction = async ({ notebook, paidBy, participants, amount, descrip
     );
 
     notebook.transactions.push({
+        addedBy,
         paidBy: paidById,
         participants: participantIds,
         amount,
-        description: description ?? ""
+        description: description ?? "",
     });
 
     notebook.settlements = minimiseExpenses(notebook.transactions);

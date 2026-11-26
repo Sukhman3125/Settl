@@ -48,11 +48,12 @@ const my_notebooks = asyncHandler(async (req, res) => {
 });
 
 const add_transaction = asyncHandler(async (req, res) => {
+    const addedBy = req.user._id;
     const notebook = req.notebook;
     const { paidBy, participants, amount, description } = req.body;
 
     const settlements = await notebookService.add_transaction(
-        { notebook, paidBy, participants, amount, description }
+        { addedBy, notebook, paidBy, participants, amount, description }
     );
 
     return res

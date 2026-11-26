@@ -3,6 +3,11 @@ import * as constants from "../../config/constants.js";
 
 const transactionSchema = new Schema(
     {
+        addedBy: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            required: true
+        },
         paidBy: {
             type: Schema.Types.ObjectId,
             ref: "User",
