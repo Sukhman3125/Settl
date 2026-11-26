@@ -1,11 +1,6 @@
 import { native } from "../../cpp.js";
 import * as constants from "../../config/constants.js";
 
-minimiseExpenses({
-    paidBy: "sukh",
-    participants: ["avinash"],
-    amount: 100
-});
 
 export function minimiseExpenses(transactions) {
     let paidBy = [], liableTo = [], amount = [];
