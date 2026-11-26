@@ -2,10 +2,10 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import * as notebookService from "./notebook.service.js";
 
-const createNotebook = asyncHandler(async (req, res) => {
+const create = asyncHandler(async (req, res) => {
     const user_id = req.user._id;
     const { notebookName } = req.body;
-    const notebook = await notebookService.createNotebook(user_id, notebookName);
+    const notebook = await notebookService.create(user_id, notebookName);
     return res
         .status(201)
         .json(
@@ -17,6 +17,22 @@ const createNotebook = asyncHandler(async (req, res) => {
         );
 });
 
+const leave = asyncHandler(async (req, res) => {
+    const user_id = req.user._id;
+    const { notebook_id } = req.body;
+    await notebookService.leave(user_id, notebook_id);
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                null,
+                "Successfully left the notebook"
+            )
+        );
+});
+
 export {
-    createNotebook
+    create,
+    leave
 }

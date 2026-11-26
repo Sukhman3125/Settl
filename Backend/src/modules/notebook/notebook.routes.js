@@ -12,9 +12,18 @@ router.post(
     "/create", 
     rateLimiter(rates.STRICT_RATE),
     verifyJWT,
-    validators.createNotebook,
+    validators.create,
     validate,
-    notebookController.createNotebook
+    notebookController.create
 );
+
+router.post(
+    "/leave",
+    rateLimiter(rateLimiter.STRICT_RATE),
+    verifyJWT,
+    validators.leave,
+    validate,
+    notebookController.leave
+)
 
 export default router;
