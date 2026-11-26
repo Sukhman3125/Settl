@@ -19,7 +19,7 @@ router.post(
 
 router.post(
     "/leave",
-    rateLimiter(rateLimiter.STRICT_RATE),
+    rateLimiter(rates.STRICT_RATE),
     verifyJWT,
     validators.leave,
     validate,
