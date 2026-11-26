@@ -4,3 +4,4 @@ export const APP_NAME = "Settl";
 export const MAX_OTP_ATTEMPTS = 5;
 
 export const NOTEBOOKS_IN_A_PAGE = 10;
+export const DESC_MAX_LEN = 100;

@@ -1,10 +1,11 @@
 import { body } from "express-validator";
+import * as constants from "../../config/constants.js"
 
 const notebook_id = () => body("notebook_id")
     .isMongoId()
     .withMessage("Invalid notebook id");
 
-const user = (prop_name) => 
+const user = (prop_name) =>
     body(prop_name)
         .isString().withMessage(`${prop_name} must be a string`).bail()
         .trim()
@@ -59,5 +60,14 @@ export const add_transaction = [
     body("amount")
         .isFloat({ gt: 0 })
         .withMessage("Amount must be a positive number")
-        .toFloat()
+        .toFloat(),
+
+    body("description")
+        .optional()
+        .isString()
+        .withMessage("Description must be a string")
+        .bail()
+        .trim()
+        .isLength({ max: constants.DESC_MAX_LEN })
+        .withMessage(`Description cannot exceed ${constants.DESC_MAX_LEN} characters`)
 ];

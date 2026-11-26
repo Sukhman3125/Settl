@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import * as constants from "../../config/constants.js";
 
 const transactionSchema = new Schema(
     {
@@ -18,6 +19,13 @@ const transactionSchema = new Schema(
             type: Number,
             required: true,
             min: 0.01,
+        },
+
+        description: {
+            type: String,
+            trim: true,
+            maxlength: constants.DESC_MAX_LEN,
+            default: ""
         }
     },
     {
