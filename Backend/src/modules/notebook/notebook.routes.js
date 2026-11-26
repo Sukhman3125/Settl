@@ -26,4 +26,13 @@ router.post(
     notebookController.leave
 )
 
+router.get(
+    "/my-notebooks",
+    rateLimiter(rates.DEFAULT_RATE),
+    verifyJWT,
+    validators.my_notebooks,
+    validate,
+    notebookController.my_notebooks
+);
+
 export default router;

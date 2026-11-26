@@ -32,7 +32,23 @@ const leave = asyncHandler(async (req, res) => {
         );
 });
 
+const my_notebooks = asyncHandler(async (req, res) => {
+    const user_id = req.user._id;
+    const page = req.body?.page ?? 1;
+    const notebooks = await notebookService.my_notebooks(user_id, page);
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                notebooks,
+                "Successfully fetched the notebooks"
+            )
+        );
+});
+
 export {
     create,
-    leave
+    leave,
+    my_notebooks
 }

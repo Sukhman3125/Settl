@@ -15,3 +15,10 @@ export const leave = [
         .isMongoId()
         .withMessage("Invalid notebook id")
 ];
+
+export const my_notebooks = [
+    body("page")
+        .optional()
+        .isInt({ min: 1 }).withMessage("Page must be a positive integer")
+        .toInt()
+];
